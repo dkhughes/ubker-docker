@@ -1,0 +1,44 @@
+FROM debian:jessie
+MAINTAINER @maintainer@
+
+ENV TERM xterm
+
+# apt config:  silence warnings and set defaults
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN true
+
+# turn off recommends on container OS
+# install required dependencies
+RUN echo 'APT::Install-Recommends "0";\nAPT::Install-Suggests "0";' > \
+    /etc/apt/apt.conf.d/01norecommend && \
+    apt-get update && \
+    apt-get -y install \
+        git \
+        libglib2.0-0 \
+	sudo \
+	nano \
+	wget \
+	ca-certificates \
+	xz-utils \
+	libncurses5 \
+	device-tree-compiler && \
+    apt-get clean	
+
+# Download gcc cross compiler for armhf
+RUN cd /tmp/ && \
+    echo "Downloading gcc-linaro-5.3" && \
+    wget -q https://releases.linaro.org/components/toolchain/binaries/latest-5/arm-linux-gnueabihf/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz && \
+    wget -q https://releases.linaro.org/components/toolchain/binaries/latest-5/arm-linux-gnueabihf/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz.asc && \
+    echo "Validating checksum of compiler download:" && \
+    md5sum -c gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz.asc && \ 
+    cd /opt && \
+    echo "Extracting compiler to /opt/" && \
+    tar xf /tmp/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz && \
+    ln -s /opt/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf gcc-linaro-hf && \
+    rm -rf /tmp/*
+
+# Edit the path to include the cross compiler
+ENV PATH "/opt/gcc-linaro-hf/bin:$PATH"
+ENV ARCH arm
+ENV CROSS_COMPILE arm-linux-gnueabihf-
+
