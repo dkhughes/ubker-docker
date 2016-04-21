@@ -1,6 +1,9 @@
 FROM debian:jessie
 MAINTAINER @maintainer@
 
+ARG b_uid
+ARG b_gid
+
 ENV TERM xterm
 
 # apt config:  silence warnings and set defaults
@@ -15,14 +18,27 @@ RUN echo 'APT::Install-Recommends "0";\nAPT::Install-Suggests "0";' > \
     apt-get -y install \
         git \
         libglib2.0-0 \
-	sudo \
-	nano \
-	wget \
-	ca-certificates \
-	xz-utils \
-	libncurses5 \
-	device-tree-compiler && \
-    apt-get clean	
+      	sudo \
+      	nano \
+      	wget \
+      	ca-certificates \
+      	xz-utils \
+      	bc \
+        libssl-dev \
+        libncurses5 \
+      	libncurses5-dev \
+      	build-essential \
+        file && \
+      	apt-get clean
+
+# Setup non-root user
+RUN export uid=${b_uid} gid=${b_gid} && \
+    mkdir -p /home/developer && \
+    echo "developer:x:${uid}:${gid}:Developer,,,:/home/developer:/bin/bash" >> /etc/passwd && \
+    echo "developer:x:${uid}:" >> /etc/group && \
+    echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
+    chmod 0440 /etc/sudoers.d/developer && \
+    chown ${uid}:${gid} /home/developer
 
 # Download gcc cross compiler for armhf
 RUN cd /tmp/ && \
@@ -30,7 +46,7 @@ RUN cd /tmp/ && \
     wget -q https://releases.linaro.org/components/toolchain/binaries/latest-5/arm-linux-gnueabihf/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz && \
     wget -q https://releases.linaro.org/components/toolchain/binaries/latest-5/arm-linux-gnueabihf/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz.asc && \
     echo "Validating checksum of compiler download:" && \
-    md5sum -c gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz.asc && \ 
+    md5sum -c gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz.asc && \
     cd /opt && \
     echo "Extracting compiler to /opt/" && \
     tar xf /tmp/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz && \
@@ -38,7 +54,11 @@ RUN cd /tmp/ && \
     rm -rf /tmp/*
 
 # Edit the path to include the cross compiler
-ENV PATH "/opt/gcc-linaro-hf/bin:$PATH"
+ENV PATH "/opt/gcc-linaro-hf/bin:/home/developer/@u-boot-tools@:/home/developer/@linux-dtc@:$PATH"
 ENV ARCH arm
 ENV CROSS_COMPILE arm-linux-gnueabihf-
 
+# Default to the non-root user
+USER developer
+ENV HOME /home/developer
+WORKDIR /home/developer
