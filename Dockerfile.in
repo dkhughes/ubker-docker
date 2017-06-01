@@ -7,7 +7,6 @@ ARG b_gid
 ENV TERM xterm
 ENV LANG C
 
-
 # apt config:  silence warnings and set defaults
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
@@ -19,8 +18,8 @@ RUN echo 'APT::Install-Recommends "0";\nAPT::Install-Suggests "0";' > \
     apt-get update && \
     apt-get -y install \
         git \
-	gcc flex bison \
-	make \
+		gcc flex bison \
+		make \
         ruby \
         ruby-dev \
         libglib2.0-0 \
@@ -35,10 +34,10 @@ RUN echo 'APT::Install-Recommends "0";\nAPT::Install-Suggests "0";' > \
       	libncurses5-dev \
       	build-essential \
         file \
-	fakeroot \
-	uuid-runtime \
-	openssh-client \
-	sshpass && \
+		fakeroot \
+		uuid-runtime \
+		openssh-client \
+		sshpass && \
       	apt-get clean && \
     gem install fpm && \
     cd /tmp  && \
@@ -61,8 +60,8 @@ RUN export uid=${b_uid} gid=${b_gid} && \
 # Download gcc cross compiler for armhf
 RUN cd /tmp/ && \
     echo "Downloading gcc-linaro-5.3" && \
-    wget -q https://releases.linaro.org/components/toolchain/binaries/latest-5/arm-linux-gnueabihf/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz && \
-    wget -q https://releases.linaro.org/components/toolchain/binaries/latest-5/arm-linux-gnueabihf/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz.asc && \
+    wget -q http://releases.linaro.org/components/toolchain/binaries/5.3-2016.02/arm-linux-gnueabihf/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz && \
+    wget -q http://releases.linaro.org/components/toolchain/binaries/5.3-2016.02/arm-linux-gnueabihf/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz.asc && \
     echo "Validating checksum of compiler download:" && \
     md5sum -c gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf.tar.xz.asc && \
     cd /opt && \
