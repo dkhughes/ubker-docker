@@ -5,6 +5,8 @@ ARG b_uid
 ARG b_gid
 
 ENV TERM xterm
+ENV LANG C
+
 
 # apt config:  silence warnings and set defaults
 ENV DEBIAN_FRONTEND noninteractive
@@ -17,6 +19,10 @@ RUN echo 'APT::Install-Recommends "0";\nAPT::Install-Suggests "0";' > \
     apt-get update && \
     apt-get -y install \
         git \
+	gcc flex bison \
+	make \
+        ruby \
+        ruby-dev \
         libglib2.0-0 \
       	sudo \
       	nano \
@@ -28,8 +34,20 @@ RUN echo 'APT::Install-Recommends "0";\nAPT::Install-Suggests "0";' > \
         libncurses5 \
       	libncurses5-dev \
       	build-essential \
-        file && \
-      	apt-get clean
+        file \
+	fakeroot \
+	uuid-runtime \
+	openssh-client \
+	sshpass && \
+      	apt-get clean && \
+    gem install fpm && \
+    cd /tmp  && \
+    git clone https://github.com/RobertCNelson/dtc.git -b bb.org-4.1-dt-overlays5 && \
+    cd dtc/  && \
+    make PREFIX=/opt install  && \
+    cd /tmp && \
+    rm -rf dtc
+
 
 # Setup non-root user
 RUN export uid=${b_uid} gid=${b_gid} && \
@@ -54,7 +72,7 @@ RUN cd /tmp/ && \
     rm -rf /tmp/*
 
 # Edit the path to include the cross compiler
-ENV PATH "/opt/gcc-linaro-hf/bin:/home/developer/@u-boot-tools@:/home/developer/@linux-dtc@:$PATH"
+ENV PATH "/opt/gcc-linaro-hf/bin:/opt/bin:$PATH"
 ENV ARCH arm
 ENV CROSS_COMPILE arm-linux-gnueabihf-
 

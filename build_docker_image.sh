@@ -4,7 +4,9 @@
 # user name.
 
 DIR="$PWD"
-USR=`who mom likes | awk '{print $1}'`
+#USR=`who mom likes | awk '{print $1}'`
+# Gitlab CI
+USR=developer
 
 # --- Configure Here ---
 MAINTAINER="Devin Hughes <devin@jd2.com>"
